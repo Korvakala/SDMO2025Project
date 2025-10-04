@@ -20,7 +20,7 @@ for commit in Repository("https://github.com/public-apis/public-apis").traverse_
 
 DEVS = sorted(DEVS)
 
-with open(os.path.join("project1devs", "devs.csv"), 'w', newline='') as csvfile:
+with open(os.path.join("project1devs", "devs.csv"), 'w', encoding="utf-8", newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"')
     writer.writerow(["name", "email"])
     writer.writerows(DEVS)
