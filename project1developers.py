@@ -31,7 +31,7 @@ with open(os.path.join("project1devs", "devs.csv"), 'w', newline='') as csvfile:
 
 DEVS = []
 # Read csv file with name,dev columns
-with open(os.path.join("project1devs", "devs.csv"), 'r', newline='') as csvfile:
+with open(os.path.join("project1devs", "devs.csv"), 'r', encoding="utf-8", newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
         DEVS.append(row)
