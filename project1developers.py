@@ -121,7 +121,9 @@ df["c3_check"] = (df["c3.1"] >= t) & (df["c3.2"] >= t)
 
 # Atleast 2 conditions must be true with a strong connection
 checks = ["c1_check", "c2_check", "c3_check", "c4", "c5", "c6", "c7"]
-df = df[(df["c1_check"] | df["c2_check"] | df["c3_check"]) & (df[checks].sum(axis=1) >= 2)]
+# If the email is exactly the same, it will pass
+same_email = df["email_1"].str.casefold() == df["email_2"].str.casefold()
+df = df[((df["c1_check"] | df["c2_check"] | df["c3_check"]) & (df[checks].sum(axis=1) >= 2)) | same_email]
 
 # Omit "check" columns, save to csv
 df = df[["name_1", "email_1", "name_2", "email_2", "c1", "c2",
