@@ -14,7 +14,7 @@ import os
 
 from pydriller import Repository
 DEVS = set()
-for commit in Repository("https://github.com/public-apis/public-apis").traverse_commits():
+for commit in Repository("https://github.com/TheAlgorithms/Python").traverse_commits():
     DEVS.add((commit.author.name, commit.author.email))
     DEVS.add((commit.committer.name, commit.committer.email))
 
