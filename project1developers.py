@@ -155,6 +155,7 @@ def main():
     devs = read_devs(csv_path, csv_name)
     similarity_data = compute_similarity(devs)
     filter_and_save(similarity_data, similarity_threshold, output_path)
+    print(f"Similarity threshold: {similarity_threshold}")
 
 if __name__ == "__main__":
     main()
