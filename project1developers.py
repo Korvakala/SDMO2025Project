@@ -7,7 +7,6 @@ from Levenshtein import ratio as sim
 import os
 from pydriller import Repository
 
-
 def extract_devs(repo_url: str, path: str, file_name: str, default_encoding="utf-8"):
     """
     This block of code take the repository, fetches all the commits,
@@ -28,7 +27,6 @@ def extract_devs(repo_url: str, path: str, file_name: str, default_encoding="utf
         writer.writerow(["name", "email"])
         writer.writerows(DEVS)
 
-
 def read_devs(path: str, file_name: str, default_encoding="utf-8"):
     """
     his block of code reads an existing csv of developers
@@ -42,6 +40,33 @@ def read_devs(path: str, file_name: str, default_encoding="utf-8"):
     # First element is header, skip
     DEVS = DEVS[1:]
     return DEVS
+
+def compute_similarity(developers):
+    SIMILARITY = []
+    for dev_a, dev_b in combinations(developers, 2):
+        # Pre-process both developers
+        name_a, first_a, last_a, i_first_a, i_last_a, email_a, prefix_a = preprocess(dev_a)
+        name_b, first_b, last_b, i_first_b, i_last_b, email_b, prefix_b = preprocess(dev_b)
+
+        # Conditions of Bird heuristic
+        c1 = sim(name_a, name_b)
+        c2 = sim(prefix_b, prefix_a)
+        c31 = sim(first_a, first_b)
+        c32 = sim(last_a, last_b)
+        c4 = c5 = c6 = c7 = False
+        # Since lastname and initials can be empty, perform appropriate checks
+        if i_first_a != "" and last_a != "":
+            c4 = i_first_a in prefix_b and last_a in prefix_b
+        if i_last_a != "":
+            c5 = i_last_a in prefix_b and first_a in prefix_b
+        if i_first_b != "" and last_b != "":
+            c6 = i_first_b in prefix_a and last_b in prefix_a
+        if i_last_b != "":
+            c7 = i_last_b in prefix_a and first_b in prefix_a
+
+        # Save similarity data for each conditions. Original names are saved
+        SIMILARITY.append([dev_a[0], email_a, dev_b[0], email_b, c1, c2, c31, c32, c4, c5, c6, c7])
+    return SIMILARITY
 
 def preprocess(dev):
     """
@@ -83,43 +108,12 @@ def preprocess(dev):
 
     return name, first, last, i_first, i_last, email, prefix
 
-
-
-def compute_similarity(developers):
-    SIMILARITY = []
-    for dev_a, dev_b in combinations(developers, 2):
-        # Pre-process both developers
-        name_a, first_a, last_a, i_first_a, i_last_a, email_a, prefix_a = preprocess(dev_a)
-        name_b, first_b, last_b, i_first_b, i_last_b, email_b, prefix_b = preprocess(dev_b)
-
-        # Conditions of Bird heuristic
-        c1 = sim(name_a, name_b)
-        c2 = sim(prefix_b, prefix_a)
-        c31 = sim(first_a, first_b)
-        c32 = sim(last_a, last_b)
-        c4 = c5 = c6 = c7 = False
-        # Since lastname and initials can be empty, perform appropriate checks
-        if i_first_a != "" and last_a != "":
-            c4 = i_first_a in prefix_b and last_a in prefix_b
-        if i_last_a != "":
-            c5 = i_last_a in prefix_b and first_a in prefix_b
-        if i_first_b != "" and last_b != "":
-            c6 = i_first_b in prefix_a and last_b in prefix_a
-        if i_last_b != "":
-            c7 = i_last_b in prefix_a and first_b in prefix_a
-
-        # Save similarity data for each conditions. Original names are saved
-        SIMILARITY.append([dev_a[0], email_a, dev_b[0], email_b, c1, c2, c31, c32, c4, c5, c6, c7])
-        return SIMILARITY
-
-
 def save_similarity_data(similarity_data, dir):
     """
     Save similarity data if chosen so
     """
     # Save data on all pairs
     similarity_data.to_csv(os.path.join(dir, "devs_similarity.csv"), index=False, header=True)
-
 
 def filter_and_save(sim_data, sim_threshold, results_path, save_sim_data=True):
     """
@@ -150,8 +144,6 @@ def filter_and_save(sim_data, sim_threshold, results_path, save_sim_data=True):
             "c3.1", "c3.2", "c4", "c5", "c6", "c7"]]
     df.to_csv(os.path.join(results_path, f"devs_similarity_t={t}.csv"), index=False, header=True)
 
-
-
 def main():
     repo_url = "https://github.com/EbookFoundation/free-programming-books"
     csv_path = "project1devs"
@@ -159,14 +151,9 @@ def main():
     output_path = "project1devs"
     similarity_threshold = 0.9
 
-    # Hakee urlilla commit ja kirjoittaa ne csv_name mukaiseen tiedostoon
     extract_devs(repo_url, csv_path, csv_name)
-    # lukee annettujen parametrien mukaisen csv-tiedoston ja lisää ne listaan. Skippaa sarakkeiden otsikot
     devs = read_devs(csv_path, csv_name)
     similarity_data = compute_similarity(devs)
-
-    # pd.DataFrame(similarity_data).to_csv(similarity_csv, index=False)
-
     filter_and_save(similarity_data, similarity_threshold, output_path)
 
 if __name__ == "__main__":

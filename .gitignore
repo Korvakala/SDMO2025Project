@@ -1,0 +1,3 @@
+# Ignore developer data files
+project1devs/devs.csv
+project1devs/devs_similarity.csv
