@@ -8,7 +8,7 @@ import os
 from pydriller import Repository
 
 
-def extract_devs(repo_url: str, path: str, file_name: str):
+def extract_devs(repo_url: str, path: str, file_name: str, default_encoding="utf-8"):
     """
     This block of code take the repository, fetches all the commits,
     retrieves name and email of both the author and commiter and saves the unique
@@ -29,7 +29,7 @@ def extract_devs(repo_url: str, path: str, file_name: str):
         writer.writerows(DEVS)
 
 
-def read_devs(path: str, file_name: str):
+def read_devs(path: str, file_name: str, default_encoding="utf-8"):
     """
     his block of code reads an existing csv of developers
     """
@@ -41,6 +41,7 @@ def read_devs(path: str, file_name: str):
             DEVS.append(row)
     # First element is header, skip
     DEVS = DEVS[1:]
+    return DEVS
 
 def preprocess(dev):
     """
@@ -130,7 +131,7 @@ def filter_and_save(sim_data, sim_threshold, results_path, save_sim_data=True):
 
     # Save similarity data (might be too big -> change True to False)
     if save_sim_data == True:
-        save_similarity_data(df, sim_results_path=results_path)
+        save_similarity_data(df, results_path)
 
     # Set similarity threshold, check c1-c3 against the threshold
     t = sim_threshold
@@ -156,21 +157,17 @@ def main():
     csv_path = "project1devs"
     csv_name = "devs.csv"
     output_path = "project1devs"
-    default_encoding = "utf-8"
     similarity_threshold = 0.9
 
-    # devs_csv = os.path.join("project1devs", "devs.csv")
-
-    # similarity_csv = os.path.join("project1devs", "devs_similarity.csv")
-    # filtered_csv = os.path.join("project1devs", "devs_similarity_t=0.9.csv")
-
-
+    # Hakee urlilla commit ja kirjoittaa ne csv_name mukaiseen tiedostoon
     extract_devs(repo_url, csv_path, csv_name)
+    # lukee annettujen parametrien mukaisen csv-tiedoston ja lisää ne listaan. Skippaa sarakkeiden otsikot
     devs = read_devs(csv_path, csv_name)
     similarity_data = compute_similarity(devs)
 
-    pd.DataFrame(similarity_data).to_csv(similarity_csv, index=False)
-    filter_and_save(similarity_data, similarity_threshold, output_path, )
+    # pd.DataFrame(similarity_data).to_csv(similarity_csv, index=False)
+
+    filter_and_save(similarity_data, similarity_threshold, output_path)
 
 if __name__ == "__main__":
     main()
