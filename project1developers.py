@@ -5,26 +5,28 @@ import string
 from itertools import combinations
 from Levenshtein import ratio as sim
 import os
-
-# This block of code take the repository, fetches all the commits,
-# retrieves name and email of both the author and commiter and saves the unique
-# pairs to csv
-# If you provide a URL, it clones the repo, fetches the commits and then deletes it,
-# so for a big project better clone the repo locally and provide filesystem path
-
 from pydriller import Repository
-DEVS = set()
-for commit in Repository("https://github.com/EbookFoundation/free-programming-books").traverse_commits():
-    DEVS.add((commit.author.name, commit.author.email))
-    DEVS.add((commit.committer.name, commit.committer.email))
 
-DEVS = sorted(DEVS)
 
-with open(os.path.join("project1devs", "devs.csv"), 'w', encoding="utf-8", newline='') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',', quotechar='"')
-    writer.writerow(["name", "email"])
-    writer.writerows(DEVS)
+def extract_devs(repo_url: str, repo_path: str, csv_name: str, default_encoding="utf-8"):
+    """
+    This block of code take the repository, fetches all the commits,
+    retrieves name and email of both the author and commiter and saves the unique
+    pairs to csv
+    If you provide a URL, it clones the repo, fetches the commits and then deletes it,
+    so for a big project better clone the repo locally and provide filesystem path
+    """
+    DEVS = set()
+    for commit in Repository(repo_url).traverse_commits():
+        DEVS.add((commit.author.name, commit.author.email))
+        DEVS.add((commit.committer.name, commit.committer.email))
 
+    DEVS = sorted(DEVS)
+
+    with open(os.path.join(repo_path, csv_name), 'w', encoding=default_encoding, newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"')
+        writer.writerow(["name", "email"])
+        writer.writerows(DEVS)
 
 
 # This block of code reads an existing csv of developers
@@ -129,3 +131,22 @@ df = df[((df["c1_check"] | df["c2_check"] | df["c3_check"]) & (df[checks].sum(ax
 df = df[["name_1", "email_1", "name_2", "email_2", "c1", "c2",
         "c3.1", "c3.2", "c4", "c5", "c6", "c7"]]
 df.to_csv(os.path.join("project1devs", f"devs_similarity_t={t}.csv"), index=False, header=True)
+
+def main():
+    repo_url = "https://github.com/EbookFoundation/free-programming-books"
+    repo_path = "project1devs"
+    csv_name = "devs.csv"
+
+    # devs_csv = os.path.join("project1devs", "devs.csv")
+
+    similarity_csv = os.path.join("project1devs", "devs_similarity.csv")
+    filtered_csv = os.path.join("project1devs", "devs_similarity_t=0.9.csv")
+
+    extract_developers(repo_url: str, repo_path: str, csv_name: str, default_encoding="utf-8")
+    devs = read_developers(devs_csv)
+    similarity_data = compute_similarity(devs)
+    pd.DataFrame(similarity_data).to_csv(similarity_csv, index=False)
+    filter_and_save(similarity_data, filtered_csv, threshold=0.9)
+
+if __name__ == "__main__":
+    main()
