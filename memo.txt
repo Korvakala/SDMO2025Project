@@ -1,0 +1,87 @@
+testi devs.csv tiedosto jossa on kolme riviä dataa muodossa:
+name	email
+-=fAlC0n=-	Falcon@ssm3807.student.rit.edu
+-_-	117875736+Keerthan04@users.noreply.github.com
+0xCD	0xCD@users.noreply.github.com
+
+DEVS = []
+with open(os.path.join("./","devss.csv"), 'r', encoding="UTF-8", newline='') as csvfile:
+    reader = csv.reader(csvfile,delimiter=',')
+        for row in reader:
+            DEVS.append(row)
+DEVS = DEVS[1:]
+
+-- output:
+[['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu'],
+['-_-\t117875736+Keerthan04@users.noreply.github.com'],
+['0xCD\t0xCD@users.noreply.github.com']]
+
+compute_similarity funktio ottaa edellisen parametrina
+
+SIMILARITY = []
+for dev_a, dev_b in combinations(developers, 2):
+
+print(list(combinations(DEVS,2)))
+-- muodostaa parit listan kaikista objekteista ja laittaa ne tupleihin, jotka taas ovat listassa
+-- output:
+[(['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu'], ['-_-\t117875736+Keerthan04@users.noreply.github.com']),
+(['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu'], ['0xCD\t0xCD@users.noreply.github.com']),
+(['-_-\t117875736+Keerthan04@users.noreply.github.com'], ['0xCD\t0xCD@users.noreply.github.com'])]
+
+for dev_a, dev_b in combinations(DEVS,2):
+    print("a: ",dev_a," b: ",dev_b)
+
+a:  ['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu']  b:  ['-_-\t117875736+Keerthan04@users.noreply.github.com']
+a:  ['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu']  b:  ['0xCD\t0xCD@users.noreply.github.com']
+a:  ['-_-\t117875736+Keerthan04@users.noreply.github.com']  b:  ['0xCD\t0xCD@users.noreply.github.com']
+
+Tässä kohtaa dev_a ja dev_b käsitellään rivi kerrallaan preprocess() funktiolla (edellisen for-loopin sisällä lähdekoodissa):
+
+name_a, first_a, last_a, i_first_a, i_last_a, email_a, prefix_a = preprocess(dev_a)
+name_b, first_b, last_b, i_first_b, i_last_b, email_b, prefix_b = preprocess(dev_b)
+
+preprocess():
+
+name: str = dev[0]
+-- input: ['-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu']
+-- output name: '-=fAlC0n=-\tFalcon@ssm3807.student.rit.edu'
+
+# Remove punctuation
+trans = name.maketrans("", "", string.punctuation)
+name = name.translate(trans)
+
+-- output: 'fAlC0n\tFalconssm3807studentritedu'
+
+# Remove accents, diacritics
+name = unicodedata.normalize('NFKD', name)
+name = ''.join([c for c in name if not unicodedata.combining(c)])
+
+-- output:
+
+# Lowercase
+name = name.casefold()
+# Strip whitespace
+name = " ".join(name.split())
+
+
+# Attempt to split name into firstname, lastname by space
+parts = name.split(" ")
+# Expected case
+if len(parts) == 2:
+    first, last = parts
+# If there is no space, firstname is full name, lastname empty
+elif len(parts) == 1:
+    first, last = name, ""
+# If there is more than 1 space, firstname is until first space, rest is lastname
+else:
+    first, last = parts[0], " ".join(parts[1:])
+
+# Take initials of firstname and lastname if they are long enough
+i_first = first[0] if len(first) > 1 else ""
+i_last = last[0] if len(last) > 1 else ""
+
+# Determine email prefix
+email: str = dev[1]
+prefix = email.split("@")[0]
+
+return name, first, last, i_first, i_last, email, prefix
